@@ -991,7 +991,6 @@ namespace Client
                             viewGroups = myView.Groups.Cast<CollectionViewGroup>().ToList();
                         }
 
-                        List<GroupStyle> name = _window.lbTasks.GroupStyle.ToList();
                         contents.Append(EmitGroupHeader());
                         nextGroupAtTaskNumber = numberOfItemsInCurrentGroup + currentTaskNumber;
                     }
@@ -1025,9 +1024,20 @@ namespace Client
 
                 contents.Append("<td>" + task.Body);
 
-                task.Projects.ForEach(project => contents.Append(" <span class='project'>" + project + "</span> "));
+                //When printing, don't bother writing "No Project" or "No Context"; only write if there is one set.
+                var projectNames =
+                    from p in task.Projects
+                    where p != "No Project"
+                    select p;
+                projectNames.Each(project => contents.Append(" <span class='project'>" + project + "</span> "));
 
-                task.Contexts.ForEach(context => contents.Append(" <span class='context'>" + context + "</span> "));
+                var contextNames =
+                    from c in task.Contexts
+                    where c != "No Context"
+                    select c;
+                contextNames.Each(context => contents.Append(" <span class='context'>" + context + "</span> "));
+				
+				
 
                 contents.Append("</td>");
 
@@ -1041,14 +1051,16 @@ namespace Client
             return contents.ToString();
         }
 
+        /// <summary>
+        /// 1. Emit the header
+        /// 2. Remove it from the stack
+        /// 3. Reset the number of items in the group -- in calling function
+        /// </summary>
+        /// <returns>The formatted HTML string containing the header name.</returns>
         private string EmitGroupHeader()
         {
 
-            //Emit the header
 
-            //Remove it from the stack
-
-            //Reset the number of items in the group
 
             if (!myView.Groups.IsNullOrEmpty() && myView.GroupDescriptions != null && myView.Groups.Count > 0)
             {
@@ -1063,12 +1075,5 @@ namespace Client
 
         }
 
-    }
-
-    // Requires using System.Collections.ObjectModel; 
-    public class TaskList2 : ObservableCollection<Task>
-    {
-        
-        // Creating the Tasks collection in this way enables data binding from XAML.
     }
 }
